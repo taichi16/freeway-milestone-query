@@ -1,0 +1,17 @@
+{
+  "last_updated": "2026-08-02 10:26:47",
+  "resources_md5": [
+    "127f7908f08efc52f4a1e58d690f60e4",
+    "32b56fe6af0adf48e8d0aa2bfdc61b4c",
+    "cc725eeaa7e2f7ac74760ed18faa4caa"
+  ],
+  "csv_size": 539323,
+  "total_records": 10088,
+  "last_checked": "2026-08-02 10:26:47",
+  "status": "success",
+  "zip_url": "https://www.freeway.gov.tw/UserFiles/file/國道百公尺里程樁KML/整樁及百公尺里程樁KML(schema加入).zip",
+  "csv_urls": [
+    "https://www.freeway.gov.tw/Upload/DownloadFiles/%e5%9c%8b4%e8%b1%90%e6%bd%ad%e5%bb%b6%e4%bc%b8%e6%ae%b5_%e9%87%8c%e7%a8%8b%e6%a8%81_584722.csv",
+    "https://www.freeway.gov.tw/Upload/DownloadFiles/%e5%9c%8b%e4%ba%8c%e7%94%b2_145622.csv"
+  ]
+}

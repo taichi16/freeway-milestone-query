@@ -1,0 +1,265 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>國道百公尺里程查詢系統</title>
+    
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&family=Noto+Sans+TC:wght@300;400;500;700&display=swap" rel="stylesheet">
+    
+    <!-- Leaflet.js Map CSS -->
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" 
+          integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin="" />
+          
+    <!-- Custom CSS -->
+    <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+    <!-- 載入覆蓋層 -->
+    <div id="loading-overlay" class="loading-overlay">
+        <div class="loading-card">
+            <div class="spinner-large"></div>
+            <h2 id="loading-title">正在載入系統資料</h2>
+            <p id="loading-subtitle">首次載入將下載約 500KB 的國道里程數據，隨後開啟只需數十毫秒...</p>
+            <div class="progress-bar-container">
+                <div id="loading-progress" class="progress-bar"></div>
+            </div>
+            <div id="loading-status" class="loading-status">準備載入...</div>
+        </div>
+    </div>
+
+    <!-- 主容器 -->
+    <div id="app-container" class="app-container">
+        
+        <!-- 左側側邊欄 -->
+        <aside id="left-panel" class="left-panel">
+            <header class="app-header">
+                <div class="logo-area">
+                    <i data-lucide="compass" class="logo-icon"></i>
+                    <div>
+                        <h1>國道百公尺里程</h1>
+                        <span class="sub-title">最近里程樁即時定位查詢</span>
+                    </div>
+                </div>
+                <div class="update-section">
+                    <button id="update-btn" class="btn btn-secondary btn-icon" title="一鍵更新">
+                        <i data-lucide="refresh-cw" id="update-icon"></i>
+                    </button>
+                </div>
+            </header>
+
+            <div class="version-status" id="version-status">
+                資料狀態：偵測中...
+            </div>
+
+            <!-- 分頁切換 Tabs -->
+            <nav class="panel-tabs">
+                <button id="tab-coords" class="panel-tab active" data-tab="coords">
+                    <i data-lucide="map-pin"></i>
+                    <span>座標查詢</span>
+                </button>
+                <button id="tab-roads" class="panel-tab" data-tab="roads">
+                    <i data-lucide="navigation"></i>
+                    <span>國道列表</span>
+                </button>
+                <button id="tab-about" class="panel-tab" data-tab="about">
+                    <i data-lucide="info"></i>
+                    <span>關於本站</span>
+                </button>
+            </nav>
+
+            <!-- 列表與內容區 -->
+            <div class="panel-content">
+                <!-- 座標查詢分頁 -->
+                <div id="content-coords" class="tab-content active">
+                    <div class="coords-form">
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label for="input-lat">緯度 (Latitude)</label>
+                                <input type="number" id="input-lat" step="0.000001" placeholder="例如: 25.0645" min="21" max="26">
+                            </div>
+                            <div class="form-group">
+                                <label for="input-lng">經度 (Longitude)</label>
+                                <input type="number" id="input-lng" step="0.000001" placeholder="例如: 121.5714" min="118" max="123">
+                            </div>
+                        </div>
+                        <div class="button-row">
+                            <button id="locate-btn" class="btn btn-secondary btn-icon flex-1">
+                                <i data-lucide="locate"></i>
+                                <span>偵測定位</span>
+                            </button>
+                            <button id="search-btn" class="btn btn-primary btn-icon flex-1">
+                                <i data-lucide="search"></i>
+                                <span>開始查詢</span>
+                            </button>
+                        </div>
+                    </div>
+
+                    <div class="search-results-section hide" id="search-results-section">
+                        <div class="results-header">
+                            <h3>最近里程樁比對結果</h3>
+                            <span class="results-count">前 5 筆</span>
+                        </div>
+                        <div class="results-hint">
+                            提示：交流道附近可能重疊多條國道，可點選以下不同國道項目查看。
+                        </div>
+                        <ul id="results-list" class="interactive-list">
+                            <!-- 動態渲染 -->
+                        </ul>
+                    </div>
+                    
+                    <div class="search-welcome" id="search-welcome">
+                        <div class="welcome-card">
+                            <i data-lucide="map"></i>
+                            <p>請在上方輸入座標、點選「偵測定位」，或者<strong>直接在右側地圖上任意點擊</strong>，即可找出距離該點最近的國道里程樁！</p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 國道列表分頁 -->
+                <div id="content-roads" class="tab-content">
+                    <div class="list-welcome">
+                        選擇國道可在地圖上繪製整條公路軌跡，並動態載入里程點。
+                    </div>
+                    <ul id="road-list" class="interactive-list">
+                        <!-- 動態渲染 -->
+                    </ul>
+                </div>
+
+                <!-- 關於本站分頁 -->
+                <div id="content-about" class="tab-content about-section">
+                    <h3>國道百公尺里程查詢系統</h3>
+                    <p>本系統整合交通部高速公路局最新之「高速公路里程樁」開放資料（ID: 95016），提供手機與電腦在高速公路沿線查詢「離目前位置最近的里程樁」的定位輔助功能。</p>
+                    
+                    <div class="info-card">
+                        <h4>系統與效能優化設計</h4>
+                        <ul>
+                            <li><strong>極致壓縮 (解套 CORS)</strong>：在 GitHub 端預處理 uncompress KML，並過濾欄位，將資料包從 5MB KML ZIP 壓縮為 <strong>539 KB CSV</strong>。下載更快速，省流量。</li>
+                            <li><strong>高幀率 Canvas 渲染</strong>：採用 Leaflet Canvas 渲染器，將 10,000 個里程點動態繪製在單一畫布上，拒絕 DOM 節點卡頓，手機端也可滑順操作。</li>
+                            <li><strong>比例尺過濾 (BBox Filter)</strong>：地圖大比例縮放 (Zoom &lt; 11) 時只畫國道軌跡，Zoom &ge; 11 時才動態載入視區內里程點，保護手機處理器。</li>
+                            <li><strong>1ms 最近鄰演算法</strong>：以歐式距離平方對 10,088 點進行極速比對，能在 1 毫秒內列出最鄰近的前 5 筆項目。</li>
+                            <li><strong>流量控制更新</strong>：更新時先抓取 200 位元組 metadata，若資料無異動絕不下載 539KB 檔案，真正做到省電省流量。</li>
+                        </ul>
+                    </div>
+
+                    <div class="meta-info">
+                        <p>原始資料來源：<a href="https://data.gov.tw/dataset/95016" target="_blank" rel="noopener noreferrer">政府資料開放平臺 (ID: 95016)</a></p>
+                        <p>授權條款：政府資料開放授權條款－第 1 版</p>
+                        <p>專案開源網址：<a href="https://github.com" target="_blank" id="repo-link">GitHub 儲存庫</a></p>
+                    </div>
+                </div>
+            </div>
+        </aside>
+
+        <!-- 右側地圖面板 -->
+        <main id="main-panel" class="main-panel">
+            <!-- 地圖容器 -->
+            <div id="map-container" class="map-container">
+                <!-- 地圖頂部懸浮快速通知 -->
+                <div class="map-toast hide" id="map-toast">
+                    在地圖上點選了座標，正在尋找最近里程...
+                </div>
+                
+                <!-- Leaflet 地圖 -->
+                <div id="map"></div>
+            </div>
+
+            <!-- 里程詳細資訊面板 (PC 懸浮卡片 / Mobile 底部抽屜) -->
+            <section id="detail-panel" class="detail-panel hide">
+                <div class="detail-header">
+                    <div class="title-section">
+                        <h2 id="detail-road-name">國道1號</h2>
+                        <div class="badge-dir" id="detail-dir">主線</div>
+                    </div>
+                    <button id="close-detail-btn" class="close-btn" aria-label="關閉"><i data-lucide="x"></i></button>
+                </div>
+
+                <div class="detail-body">
+                    <!-- 里程數英雄看板 -->
+                    <div class="milestone-hero">
+                        <div class="milestone-number">
+                            <span class="k-part" id="detail-k">0</span><span class="unit">K</span>
+                            <span class="plus">+</span>
+                            <span class="m-part" id="detail-m">000</span>
+                        </div>
+                        <div class="distance-badge hide" id="detail-distance">離您 145 公尺</div>
+                    </div>
+
+                    <div class="detail-scroll">
+                        <div class="detail-grid">
+                            <div class="detail-item">
+                                <label>國道名稱</label>
+                                <span id="detail-road-lbl">-</span>
+                            </div>
+                            <div class="detail-item">
+                                <label>方向軌道</label>
+                                <span id="detail-lr-lbl">-</span>
+                            </div>
+                            <div class="detail-item">
+                                <label>累計公尺數</label>
+                                <span id="detail-meters">-</span>
+                            </div>
+                            <div class="detail-item">
+                                <label>海拔高度</label>
+                                <span id="detail-elevation">-</span>
+                            </div>
+                            <div class="detail-item span-2">
+                                <label>百公尺里程座標 (WGS84)</label>
+                                <span id="detail-coords" class="coords-text">-</span>
+                            </div>
+                            <div class="detail-item span-2 hide" id="detail-query-coords-container">
+                                <label>您的查詢座標 (輸入點)</label>
+                                <span id="detail-query-coords" class="coords-query-text">-</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- 操作按鈕 -->
+                    <div class="detail-actions">
+                        <button id="copy-coords-btn" class="btn btn-secondary btn-icon flex-1">
+                            <i data-lucide="copy"></i>
+                            <span>複製座標</span>
+                        </button>
+                        <button id="navigate-btn" class="btn btn-primary btn-icon flex-1">
+                            <i data-lucide="navigation"></i>
+                            <span>導航到此樁</span>
+                        </button>
+                    </div>
+                </div>
+            </section>
+        </main>
+
+        <!-- 手機版底部 Tab 導覽列 -->
+        <nav id="mobile-tab-bar" class="mobile-tab-bar">
+            <button id="mobile-tab-search-btn" class="mobile-tab active" data-target="coords">
+                <i data-lucide="map-pin"></i>
+                <span>座標查詢</span>
+            </button>
+            <button id="mobile-tab-map-btn" class="mobile-tab" data-target="map">
+                <i data-lucide="map"></i>
+                <span>地圖檢視</span>
+            </button>
+            <button id="mobile-tab-roads-btn" class="mobile-tab" data-target="roads">
+                <i data-lucide="navigation"></i>
+                <span>國道列表</span>
+            </button>
+        </nav>
+    </div>
+
+    <!-- Leaflet.js Map Library -->
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" 
+            integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
+            
+    <!-- PapaParse CSV Parser Library -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.4.1/papaparse.min.js"></script>
+    
+    <!-- Lucide Icons Library -->
+    <script src="https://unpkg.com/lucide@latest"></script>
+    
+    <!-- Application logic -->
+    <script src="js/app.js" defer></script>
+</body>
+</html>
