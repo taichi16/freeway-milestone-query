@@ -1,36 +1,39 @@
 /* 
    國道百公尺里程查詢系統 CSS 樣式表 (style.css)
-   採用 Emerald-Dark (國道綠/暗灰科技感) 質感主題
+   支援現代淺色 (Light) 與深色 (Dark) 主題自由切換，預設為清新高質感淺色畫面
    支援 RWD 響應式佈局 (Mobile & Desktop)
 */
 
 :root {
-    /* 顏色系統 */
-    --bg-primary: #0b0f19;       /* Dark Navy/Slate */
-    --bg-secondary: #111827;     /* Slate 900 */
-    --bg-tertiary: #070a13;      /* Deepest Black-Blue */
-    --border-color: #1f2937;     /* Slate 800 */
+    /* 預設為淺色系統 (Light Theme) - 清新現代 Clean Emerald Light */
+    --bg-primary: #f8fafc;       /* Slate 50 柔和淺灰底 */
+    --bg-secondary: #ffffff;     /* 純白卡片/側邊欄底色 */
+    --bg-tertiary: #f1f5f9;      /* Slate 100 區塊次層背景 */
+    --bg-hover: #e2e8f0;         /* Slate 200 懸浮底色 */
+    --border-color: #e2e8f0;     /* Slate 200 質感邊框線 */
+    --border-light: #f1f5f9;     /* Slate 100 淺色分隔線 */
     
-    --text-primary: #f9fafb;     /* Gray 50 */
-    --text-secondary: #9ca3af;   /* Gray 400 */
-    --text-muted: #6b7280;       /* Gray 500 */
+    --text-primary: #0f172a;     /* Slate 900 高對比字體 */
+    --text-secondary: #475569;   /* Slate 600 副標題/說明文字 */
+    --text-muted: #94a3b8;       /* Slate 400 弱化提示文字 */
     
-    --accent-color: #10b981;     /* Emerald 500 (國道綠代表色) */
-    --accent-hover: #059669;     /* Emerald 600 */
-    --accent-light: rgba(16, 185, 129, 0.12);
+    --accent-color: #059669;     /* Emerald 600 (淺底上高對比國道綠) */
+    --accent-hover: #047857;     /* Emerald 700 */
+    --accent-light: rgba(5, 150, 105, 0.1);
     
-    --success-color: #10b981;
-    --success-light: rgba(16, 185, 129, 0.15);
-    --warning-color: #fbbf24;    /* Amber 400 (用於距離提示) */
-    --warning-light: rgba(251, 191, 36, 0.12);
+    --success-color: #059669;
+    --success-light: rgba(5, 150, 105, 0.12);
+    --warning-color: #d97706;    /* Amber 600 (淺底清晰的距離色) */
+    --warning-light: rgba(217, 119, 6, 0.1);
     
-    --card-bg-glass: rgba(17, 24, 39, 0.85);
+    --card-bg-glass: rgba(255, 255, 255, 0.92);
+    --card-border-glass: rgba(226, 232, 240, 0.85);
     
-    /* 陰影與圓角 */
-    --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
-    --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
-    --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.3), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
-    --shadow-glow: 0 0 15px rgba(16, 185, 129, 0.3);
+    /* 陰影與光暈 */
+    --shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.05);
+    --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.07), 0 2px 4px -1px rgba(0, 0, 0, 0.04);
+    --shadow-lg: 0 10px 25px -5px rgba(0, 0, 0, 0.08), 0 8px 10px -6px rgba(0, 0, 0, 0.04);
+    --shadow-glow: 0 0 16px rgba(5, 150, 105, 0.2);
     
     --radius-sm: 6px;
     --radius-md: 12px;
@@ -49,6 +52,37 @@
     --transition-normal: 0.3s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
+/* 深色系統 (Dark Theme) - Emerald-Dark 科技主題 */
+[data-theme="dark"] {
+    --bg-primary: #0b0f19;       /* Dark Navy/Slate */
+    --bg-secondary: #111827;     /* Slate 900 */
+    --bg-tertiary: #070a13;      /* Deepest Black-Blue */
+    --bg-hover: #1f2937;         /* Slate 800 */
+    --border-color: #1f2937;     /* Slate 800 */
+    --border-light: rgba(31, 41, 55, 0.5);
+    
+    --text-primary: #f9fafb;     /* Gray 50 */
+    --text-secondary: #9ca3af;   /* Gray 400 */
+    --text-muted: #6b7280;       /* Gray 500 */
+    
+    --accent-color: #10b981;     /* Emerald 500 */
+    --accent-hover: #059669;     /* Emerald 600 */
+    --accent-light: rgba(16, 185, 129, 0.12);
+    
+    --success-color: #10b981;
+    --success-light: rgba(16, 185, 129, 0.15);
+    --warning-color: #fbbf24;    /* Amber 400 */
+    --warning-light: rgba(251, 191, 36, 0.12);
+    
+    --card-bg-glass: rgba(17, 24, 39, 0.88);
+    --card-border-glass: rgba(31, 41, 55, 0.8);
+    
+    --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+    --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+    --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.3), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+    --shadow-glow: 0 0 15px rgba(16, 185, 129, 0.3);
+}
+
 /* 全域重設與基本樣式 */
 * {
     margin: 0;
@@ -64,6 +98,7 @@ html, body {
     font-family: 'Outfit', 'Noto Sans TC', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
     background-color: var(--bg-primary);
     color: var(--text-primary);
+    transition: background-color var(--transition-fast), color var(--transition-fast);
 }
 
 a {
@@ -125,6 +160,7 @@ a:hover {
     display: flex;
     flex-direction: column;
     align-items: center;
+    transition: background-color var(--transition-fast), border-color var(--transition-fast);
 }
 
 .spinner-large {
@@ -158,7 +194,7 @@ a:hover {
 .progress-bar-container {
     width: 100%;
     height: 6px;
-    background-color: var(--bg-primary);
+    background-color: var(--bg-tertiary);
     border-radius: 3px;
     overflow: hidden;
     margin-bottom: 16px;
@@ -196,15 +232,16 @@ a:hover {
     flex-direction: column;
     z-index: 10;
     flex-shrink: 0;
-    transition: transform var(--transition-normal);
+    transition: transform var(--transition-normal), background-color var(--transition-fast), border-color var(--transition-fast);
 }
 
 .app-header {
-    padding: 20px;
+    padding: 18px 20px;
     display: flex;
     justify-content: space-between;
     align-items: center;
     border-bottom: 1px solid var(--border-color);
+    background-color: var(--bg-secondary);
 }
 
 .logo-area {
@@ -232,10 +269,16 @@ a:hover {
     display: block;
 }
 
+.header-actions {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
 .version-status {
     padding: 8px 20px;
     font-size: var(--font-size-xs);
-    background-color: rgba(7, 10, 19, 0.4);
+    background-color: var(--bg-tertiary);
     border-bottom: 1px solid var(--border-color);
     color: var(--text-secondary);
     display: flex;
@@ -255,7 +298,7 @@ a:hover {
     font-size: var(--font-size-sm);
     cursor: pointer;
     border: none;
-    transition: background-color var(--transition-fast), transform var(--transition-fast), box-shadow var(--transition-fast);
+    transition: background-color var(--transition-fast), transform var(--transition-fast), box-shadow var(--transition-fast), color var(--transition-fast);
 }
 
 .btn:active {
@@ -264,7 +307,7 @@ a:hover {
 
 .btn-primary {
     background-color: var(--accent-color);
-    color: var(--bg-tertiary);
+    color: #ffffff;
 }
 .btn-primary:hover {
     background-color: var(--accent-hover);
@@ -272,12 +315,12 @@ a:hover {
 }
 
 .btn-secondary {
-    background-color: rgba(31, 41, 55, 0.6);
+    background-color: var(--bg-tertiary);
     color: var(--text-primary);
     border: 1px solid var(--border-color);
 }
 .btn-secondary:hover {
-    background-color: rgba(31, 41, 55, 0.9);
+    background-color: var(--bg-hover);
 }
 
 .btn-text {
@@ -286,7 +329,7 @@ a:hover {
     padding: 6px 12px;
 }
 .btn-text:hover {
-    background-color: rgba(255, 255, 255, 0.05);
+    background-color: var(--accent-light);
 }
 
 .btn-icon {
@@ -309,7 +352,7 @@ a:hover {
 .panel-tabs {
     display: flex;
     border-bottom: 1px solid var(--border-color);
-    background-color: rgba(7, 10, 19, 0.2);
+    background-color: var(--bg-tertiary);
 }
 
 .panel-tab {
@@ -336,13 +379,14 @@ a:hover {
 
 .panel-tab:hover {
     color: var(--text-primary);
-    background-color: rgba(255, 255, 255, 0.02);
+    background-color: var(--bg-hover);
 }
 
 .panel-tab.active {
     color: var(--accent-color);
     border-bottom-color: var(--accent-color);
-    background-color: rgba(16, 185, 129, 0.05);
+    background-color: var(--bg-secondary);
+    font-weight: 600;
 }
 
 /* 分頁內容 */
@@ -350,6 +394,7 @@ a:hover {
     flex: 1;
     overflow-y: auto;
     position: relative;
+    background-color: var(--bg-secondary);
 }
 
 .tab-content {
@@ -398,13 +443,14 @@ a:hover {
     border-radius: var(--radius-sm);
     color: var(--text-primary);
     font-size: var(--font-size-sm);
-    transition: border-color var(--transition-fast), box-shadow var(--transition-fast);
+    transition: border-color var(--transition-fast), box-shadow var(--transition-fast), background-color var(--transition-fast);
 }
 
 .form-group input:focus {
     outline: none;
     border-color: var(--accent-color);
-    box-shadow: 0 0 0 2px rgba(16, 185, 129, 0.2);
+    box-shadow: 0 0 0 3px var(--accent-light);
+    background-color: var(--bg-secondary);
 }
 
 .button-row {
@@ -446,7 +492,7 @@ a:hover {
     padding: 16px 20px;
     font-size: var(--font-size-xs);
     color: var(--text-secondary);
-    background-color: rgba(7, 10, 19, 0.2);
+    background-color: var(--bg-tertiary);
     border-bottom: 1px solid var(--border-color);
     line-height: 1.5;
 }
@@ -468,7 +514,7 @@ a:hover {
     justify-content: space-between;
     align-items: center;
     padding: 12px 20px;
-    background-color: rgba(7, 10, 19, 0.3);
+    background-color: var(--bg-tertiary);
     border-bottom: 1px solid var(--border-color);
 }
 
@@ -487,7 +533,7 @@ a:hover {
     padding: 8px 20px;
     font-size: var(--font-size-xs);
     color: var(--text-muted);
-    background-color: rgba(7, 10, 19, 0.1);
+    background-color: var(--bg-primary);
     border-bottom: 1px solid var(--border-color);
 }
 
@@ -500,7 +546,7 @@ a:hover {
 
 .interactive-list li {
     padding: 14px 20px;
-    border-bottom: 1px solid rgba(31, 41, 55, 0.3);
+    border-bottom: 1px solid var(--border-color);
     cursor: pointer;
     display: flex;
     justify-content: space-between;
@@ -510,8 +556,8 @@ a:hover {
 }
 
 .interactive-list li:hover {
-    background-color: rgba(255, 255, 255, 0.03);
-    border-left-color: var(--border-color);
+    background-color: var(--bg-tertiary);
+    border-left-color: var(--accent-color);
 }
 
 .interactive-list li.active {
@@ -547,8 +593,9 @@ a:hover {
 }
 
 .badge {
-    background-color: rgba(31, 41, 55, 0.6);
+    background-color: var(--bg-tertiary);
     color: var(--text-secondary);
+    border: 1px solid var(--border-color);
     padding: 2px 8px;
     border-radius: 12px;
     font-size: var(--font-size-xs);
@@ -557,7 +604,8 @@ a:hover {
 
 .active .badge {
     background-color: var(--accent-color);
-    color: var(--bg-tertiary);
+    color: #ffffff;
+    border-color: var(--accent-color);
 }
 
 /* 搜尋結果專用標記 (如距離) */
@@ -591,7 +639,7 @@ a:hover {
 }
 
 .info-card {
-    background-color: rgba(7, 10, 19, 0.4);
+    background-color: var(--bg-tertiary);
     border: 1px solid var(--border-color);
     border-radius: var(--radius-md);
     padding: 20px;
@@ -665,11 +713,12 @@ a:hover {
     left: 50%;
     transform: translateX(-50%);
     z-index: 1000;
-    background-color: rgba(11, 15, 25, 0.9);
+    background-color: var(--bg-secondary);
     border: 1px solid var(--accent-color);
     padding: 10px 20px;
     border-radius: 30px;
     font-size: var(--font-size-xs);
+    font-weight: 500;
     color: var(--text-primary);
     box-shadow: var(--shadow-lg), var(--shadow-glow);
     display: flex;
@@ -684,7 +733,7 @@ a:hover {
     transform: translate(-50%, -20px);
 }
 
-/* Leaflet 地圖覆寫 (同 style-dark) */
+/* Leaflet 地圖覆寫 */
 .leaflet-container {
     font-family: inherit !important;
 }
@@ -692,17 +741,20 @@ a:hover {
 .leaflet-bar {
     border: 1px solid var(--border-color) !important;
     box-shadow: var(--shadow-md) !important;
+    border-radius: var(--radius-sm) !important;
+    overflow: hidden;
 }
 
 .leaflet-bar a {
     background-color: var(--bg-secondary) !important;
     color: var(--text-primary) !important;
     border-bottom: 1px solid var(--border-color) !important;
-    transition: background-color var(--transition-fast);
+    transition: background-color var(--transition-fast), color var(--transition-fast);
 }
 
 .leaflet-bar a:hover {
-    background-color: var(--border-color) !important;
+    background-color: var(--bg-tertiary) !important;
+    color: var(--accent-color) !important;
 }
 
 .leaflet-popup-content-wrapper {
@@ -724,6 +776,42 @@ a:hover {
     line-height: 1.5;
 }
 
+/* Leaflet 圖層控制面板 (Layer Switcher) 自訂樣式 */
+.leaflet-control-layers {
+    background-color: var(--bg-secondary) !important;
+    color: var(--text-primary) !important;
+    border: 1px solid var(--border-color) !important;
+    border-radius: var(--radius-md) !important;
+    box-shadow: var(--shadow-md) !important;
+    font-family: inherit !important;
+    font-size: var(--font-size-xs) !important;
+    padding: 6px 10px !important;
+    transition: background-color var(--transition-fast), border-color var(--transition-fast);
+}
+
+.leaflet-control-layers-expanded {
+    padding: 10px 14px !important;
+}
+
+.leaflet-control-layers-base label {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-bottom: 8px;
+    cursor: pointer;
+    color: var(--text-primary);
+    font-weight: 500;
+}
+
+.leaflet-control-layers-base label:last-child {
+    margin-bottom: 0;
+}
+
+.leaflet-control-layers-toggle {
+    background-color: var(--bg-secondary) !important;
+    border-radius: var(--radius-sm) !important;
+}
+
 /* 詳細資料面板 */
 .detail-panel {
     position: absolute;
@@ -741,7 +829,7 @@ a:hover {
     display: flex;
     flex-direction: column;
     overflow: hidden;
-    transition: transform var(--transition-normal), opacity var(--transition-normal);
+    transition: transform var(--transition-normal), opacity var(--transition-normal), background-color var(--transition-fast);
     animation: slideInRight var(--transition-normal);
 }
 
@@ -782,9 +870,9 @@ a:hover {
 }
 
 .badge-dir {
-    background-color: rgba(16, 185, 129, 0.1);
+    background-color: var(--accent-light);
     color: var(--accent-color);
-    border: 1px solid rgba(16, 185, 129, 0.3);
+    border: 1px solid var(--accent-color);
     padding: 2px 6px;
     border-radius: 4px;
     font-size: var(--font-size-xs);
@@ -804,7 +892,7 @@ a:hover {
 }
 
 .close-btn:hover {
-    background-color: rgba(255, 255, 255, 0.05);
+    background-color: var(--bg-hover);
     color: var(--text-primary);
 }
 
@@ -823,8 +911,8 @@ a:hover {
 
 /* 里程英雄看板 */
 .milestone-hero {
-    background: linear-gradient(135deg, rgba(16, 185, 129, 0.1) 0%, rgba(251, 191, 36, 0.05) 100%);
-    border: 1px solid rgba(16, 185, 129, 0.2);
+    background: linear-gradient(135deg, var(--accent-light) 0%, var(--warning-light) 100%);
+    border: 1px solid var(--accent-light);
     border-radius: var(--radius-md);
     padding: 16px;
     margin-bottom: 16px;
@@ -863,7 +951,7 @@ a:hover {
 .distance-badge {
     background-color: var(--warning-light);
     color: var(--warning-color);
-    border: 1px solid rgba(251, 191, 36, 0.2);
+    border: 1px solid var(--warning-color);
     padding: 6px 12px;
     border-radius: var(--radius-sm);
     font-size: var(--font-size-xs);
@@ -892,7 +980,7 @@ a:hover {
     display: flex;
     flex-direction: column;
     gap: 4px;
-    border-bottom: 1px solid rgba(31, 41, 55, 0.25);
+    border-bottom: 1px solid var(--border-color);
     padding-bottom: 10px;
 }
 
@@ -945,6 +1033,7 @@ a:hover {
     z-index: 1000;
     justify-content: space-around;
     align-items: center;
+    transition: background-color var(--transition-fast), border-color var(--transition-fast);
 }
 
 .mobile-tab {
@@ -960,6 +1049,7 @@ a:hover {
     color: var(--text-secondary);
     font-size: var(--font-size-xs);
     cursor: pointer;
+    transition: color var(--transition-fast);
 }
 
 .mobile-tab i {
@@ -969,6 +1059,7 @@ a:hover {
 
 .mobile-tab.active {
     color: var(--accent-color);
+    font-weight: 600;
 }
 
 /* ==========================================================================

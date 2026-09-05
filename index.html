@@ -14,6 +14,14 @@
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" 
           integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin="" />
           
+    <!-- Theme Preloader (Default to Light Theme) -->
+    <script>
+        (function() {
+            var savedTheme = localStorage.getItem('freeway_theme') || 'light';
+            document.documentElement.setAttribute('data-theme', savedTheme);
+        })();
+    </script>
+    
     <!-- Custom CSS -->
     <link rel="stylesheet" href="css/style.css">
 </head>
@@ -44,8 +52,11 @@
                         <span class="sub-title">最近里程樁即時定位查詢</span>
                     </div>
                 </div>
-                <div class="update-section">
-                    <button id="update-btn" class="btn btn-secondary btn-icon" title="一鍵更新">
+                <div class="header-actions">
+                    <button id="theme-toggle-btn" class="btn btn-secondary btn-icon" title="切換深淺模式" aria-label="切換深淺模式">
+                        <i data-lucide="moon" id="theme-icon"></i>
+                    </button>
+                    <button id="update-btn" class="btn btn-secondary btn-icon" title="一鍵更新" aria-label="一鍵更新">
                         <i data-lucide="refresh-cw" id="update-icon"></i>
                     </button>
                 </div>

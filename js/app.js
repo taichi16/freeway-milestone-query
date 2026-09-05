@@ -54,6 +54,56 @@ let canvasRenderer = null;       // Leaflet Canvas 渲染器 (繪製 100m 點)
 let roadLinesLayer = null;       // 國道主線折線圖層組 (永遠繪製)
 let milestonePointsLayer = null; // 里程圓點圖層組 (大比例尺時動態繪製)
 let searchVisualLayer = null;    // 查詢標記與連接線圖層組
+let currentTileLayer = null;     // 當前底圖圖層實例
+let currentTheme = 'light';      // 當前色彩主題 ('light' 或 'dark')
+let currentBaseMapId = 'nlsc';   // 當前淺色底圖偏好 ('nlsc', 'esriLight', 'osm')
+let layerControl = null;         // Leaflet 圖層控制元件
+
+// 免費、免 API Key、無浮水印的優質圖資配置
+const BASEMAP_CONFIG = {
+    // 1. 臺灣通用電子地圖 (內政部國土測繪中心) - 台灣官方級別詳細圖資，路網與交流道最精確
+    nlsc: {
+        name: '🇹🇼 臺灣通用電子地圖',
+        create: () => L.tileLayer('https://wmts.nlsc.gov.tw/wmts/EMAP/default/GoogleMapsCompatible/{z}/{y}/{x}', {
+            attribution: '&copy; <a href="https://maps.nlsc.gov.tw/" target="_blank" rel="noopener">內政部國土測繪中心</a>',
+            maxZoom: 19
+        })
+    },
+    // 2. ESRI 極簡淺灰底圖 - 數據視覺化無干擾簡潔白灰風格 (無浮水印)
+    esriLight: {
+        name: '⚪ 極簡淺灰底圖',
+        create: () => L.layerGroup([
+            L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/Canvas/World_Light_Gray_Base/MapServer/tile/{z}/{y}/{x}', {
+                attribution: 'Tiles &copy; Esri',
+                maxZoom: 16
+            }),
+            L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/Canvas/World_Light_Gray_Reference/MapServer/tile/{z}/{y}/{x}', {
+                maxZoom: 16
+            })
+        ])
+    },
+    // 3. OpenStreetMap 開放街圖
+    osm: {
+        name: '🌍 OpenStreetMap',
+        create: () => L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', {
+            attribution: '&copy; <a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noopener">OpenStreetMap</a>',
+            maxZoom: 19
+        })
+    },
+    // 4. ESRI 深灰極簡底圖 - 深色模式專用 (無浮水印)
+    esriDark: {
+        name: '🌙 深黑極簡底圖',
+        create: () => L.layerGroup([
+            L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/Canvas/World_Dark_Gray_Base/MapServer/tile/{z}/{y}/{x}', {
+                attribution: 'Tiles &copy; Esri',
+                maxZoom: 16
+            }),
+            L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/Canvas/World_Dark_Gray_Reference/MapServer/tile/{z}/{y}/{x}', {
+                maxZoom: 16
+            })
+        ])
+    }
+};
 
 // 當前選取狀態
 let selectedMilestone = null;    // 當前選取的里程樁
@@ -65,6 +115,9 @@ let currentTab = 'coords';       // 當前分頁 ('coords', 'roads', 'about')
 // 3. 初始化與資料載入
 // ==========================================================================
 document.addEventListener('DOMContentLoaded', async () => {
+    // 初始化色彩主題 (預設淺色，自快取讀取)
+    initTheme();
+
     // 渲染 Lucide SVG 圖標
     lucide.createIcons();
     
@@ -80,6 +133,120 @@ document.addEventListener('DOMContentLoaded', async () => {
     // 開始資料庫載入與更新流程
     await loadDataFlow();
 });
+
+/**
+ * 初始化主題模式
+ */
+function initTheme() {
+    const savedTheme = localStorage.getItem('freeway_theme') || 'light';
+    currentBaseMapId = localStorage.getItem('freeway_basemap') || 'nlsc';
+    applyTheme(savedTheme, false);
+}
+
+/**
+ * 切換深淺色彩主題
+ */
+function toggleTheme() {
+    const nextTheme = currentTheme === 'light' ? 'dark' : 'light';
+    applyTheme(nextTheme, true);
+}
+
+/**
+ * 套用主題設定 (更新 DOM, 按鈕圖示與地圖圖層)
+ */
+function applyTheme(theme, save = true) {
+    currentTheme = theme;
+    document.documentElement.setAttribute('data-theme', theme);
+    if (save) {
+        localStorage.setItem('freeway_theme', theme);
+    }
+    
+    // 更新主題按鈕圖示與懸浮標題
+    const themeBtn = document.getElementById('theme-toggle-btn');
+    const themeIcon = document.getElementById('theme-icon');
+    if (themeIcon) {
+        if (theme === 'light') {
+            themeIcon.setAttribute('data-lucide', 'moon');
+            if (themeBtn) themeBtn.setAttribute('title', '切換為深色模式');
+        } else {
+            themeIcon.setAttribute('data-lucide', 'sun');
+            if (themeBtn) themeBtn.setAttribute('title', '切換為淺色模式');
+        }
+        lucide.createIcons();
+    }
+    
+    // 若地圖已初始化，動態更新底圖圖層與控制選單
+    if (map) {
+        setupLayerControl();
+    }
+}
+
+/**
+ * 建立與更新 Leaflet 底圖圖層控制選單 (Layer Switcher)
+ */
+function setupLayerControl() {
+    if (!map) return;
+    
+    // 移除舊有圖層切換控制項
+    if (layerControl) {
+        map.removeControl(layerControl);
+        layerControl = null;
+    }
+    
+    // 移除現有底圖圖層
+    if (currentTileLayer) {
+        map.removeLayer(currentTileLayer);
+        currentTileLayer = null;
+    }
+    
+    if (currentTheme === 'light') {
+        const lightBaseMaps = {
+            '🇹🇼 臺灣通用電子地圖': BASEMAP_CONFIG.nlsc.create(),
+            '⚪ 極簡淺灰底圖': BASEMAP_CONFIG.esriLight.create(),
+            '🌍 OpenStreetMap': BASEMAP_CONFIG.osm.create()
+        };
+        
+        // 依使用者的偏好載入對應圖層
+        const defaultLayer = currentBaseMapId === 'esriLight' ? lightBaseMaps['⚪ 極簡淺灰底圖']
+                           : currentBaseMapId === 'osm' ? lightBaseMaps['🌍 OpenStreetMap']
+                           : lightBaseMaps['🇹🇼 臺灣通用電子地圖'];
+        
+        currentTileLayer = defaultLayer;
+        currentTileLayer.addTo(map);
+        if (currentTileLayer.bringToBack) {
+            currentTileLayer.bringToBack();
+        }
+        
+        // 加入圖層控制面板 (右上角)
+        layerControl = L.control.layers(lightBaseMaps, null, {
+            position: 'topright',
+            collapsed: true
+        }).addTo(map);
+        
+        // 監聽圖層切換並記憶偏好
+        map.on('baselayerchange', (e) => {
+            currentTileLayer = e.layer;
+            if (e.name.includes('通用電子地圖')) {
+                currentBaseMapId = 'nlsc';
+            } else if (e.name.includes('淺灰')) {
+                currentBaseMapId = 'esriLight';
+            } else if (e.name.includes('OpenStreetMap')) {
+                currentBaseMapId = 'osm';
+            }
+            localStorage.setItem('freeway_basemap', currentBaseMapId);
+            if (currentTileLayer.bringToBack) {
+                currentTileLayer.bringToBack();
+            }
+        });
+    } else {
+        // 深色模式下直接載入深黑極簡底圖 (無浮水印)
+        currentTileLayer = BASEMAP_CONFIG.esriDark.create();
+        currentTileLayer.addTo(map);
+        if (currentTileLayer.bringToBack) {
+            currentTileLayer.bringToBack();
+        }
+    }
+}
 
 /**
  * 載入資料流程 (檢查快取 -> 載入/下載)
@@ -221,12 +388,8 @@ function initMap() {
         attributionControl: true
     }).setView([23.7, 120.95], 8);
     
-    // 載入 CartoDB Dark Matter 深色圖資
-    L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', {
-        attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors &copy; <a href="https://carto.com/attributions">CARTO</a>',
-        subdomains: 'abcd',
-        maxZoom: 20
-    }).addTo(map);
+    // 依目前主題與底圖偏好載入無浮水印圖資與圖層切換選單
+    setupLayerControl();
     
     // 建立專用 Canvas 渲染器以追求超高效能
     canvasRenderer = L.canvas();
@@ -284,9 +447,9 @@ function drawAllRoadLinesOnMap() {
         
         // 國道使用綠色系線段，配合主題
         L.polyline(latLngs, {
-            color: '#10b981',
+            color: '#059669',
             weight: 3.5,
-            opacity: 0.55,
+            opacity: 0.7,
             dashArray: '2, 5' // 虛線使高架/一般路段看起來更具設計感
         }).addTo(roadLinesLayer);
     }
@@ -318,12 +481,12 @@ function updateMilestonePointsOnMap() {
         // 使用 CircleMarker + Canvas 渲染器，1ms 可畫上千個點且不佔 DOM 節點
         const marker = L.circleMarker([p.lat, p.lng], {
             renderer: canvasRenderer,
-            radius: 4,
-            fillColor: '#10b981',
+            radius: 4.5,
+            fillColor: '#059669',
             color: '#ffffff',
-            weight: 1,
-            opacity: 0.8,
-            fillOpacity: 0.85
+            weight: 1.5,
+            opacity: 0.95,
+            fillOpacity: 0.9
         });
         
         // 點擊事件
@@ -334,9 +497,9 @@ function updateMilestonePointsOnMap() {
         
         // 綁定提示 Popup
         marker.bindPopup(`
-            <div style="font-weight:bold; font-size:13px; color:#10b981; margin-bottom:2px;">${p.road} • ${p.milestone}</div>
+            <div style="font-weight:bold; font-size:13px; color:var(--accent-color); margin-bottom:2px;">${p.road} • ${p.milestone}</div>
             <div style="font-size:12px;">方向：${getDirectionLabel(p.direction)}</div>
-            <div style="margin-top:4px;"><a href="javascript:void(0)" onclick="window.appSelectFreewayPt(${p.id})" style="color:#10b981; font-weight:bold;">選取此點 &rarr;</a></div>
+            <div style="margin-top:4px;"><a href="javascript:void(0)" onclick="window.appSelectFreewayPt(${p.id})" style="color:var(--accent-color); font-weight:bold;">選取此點 &rarr;</a></div>
         `);
         
         marker.addTo(milestonePointsLayer);
@@ -364,17 +527,17 @@ function drawSearchQueryOnMap(queryLatLng, closestPoint) {
     
     const targetLatLng = [closestPoint.lat, closestPoint.lng];
     
-    // 1. 繪製使用者查詢輸入點 (黃色光圈)
+    // 1. 繪製使用者查詢輸入點 (琥珀金/橘黃光圈)
     const queryMarker = L.marker(queryLatLng, {
         icon: L.divIcon({
             className: 'query-pin',
             html: `<div style="
                 width: 14px; 
                 height: 14px; 
-                background-color: #fbbf24; 
+                background-color: #d97706; 
                 border: 2px solid #ffffff; 
                 border-radius: 50%;
-                box-shadow: 0 0 12px #fbbf24, 0 0 4px #fbbf24;
+                box-shadow: 0 0 10px rgba(217, 119, 6, 0.6), 0 2px 4px rgba(0,0,0,0.2);
             "></div>`,
             iconSize: [14, 14],
             iconAnchor: [7, 7]
@@ -382,17 +545,17 @@ function drawSearchQueryOnMap(queryLatLng, closestPoint) {
     }).addTo(searchVisualLayer);
     queryMarker.bindPopup(`<div style="font-size:12px; font-weight:bold;">您的查詢座標：<br>${queryLatLng[0].toFixed(6)}, ${queryLatLng[1].toFixed(6)}</div>`);
     
-    // 2. 繪製最近里程點 (綠色大發光點)
+    // 2. 繪製最近里程點 (國道綠大發光點)
     const targetMarker = L.marker(targetLatLng, {
         icon: L.divIcon({
             className: 'target-pin',
             html: `<div style="
                 width: 18px; 
                 height: 18px; 
-                background-color: #10b981; 
+                background-color: #059669; 
                 border: 3px solid #ffffff; 
                 border-radius: 50%;
-                box-shadow: 0 0 15px #10b981, 0 0 6px #10b981;
+                box-shadow: 0 0 14px rgba(5, 150, 105, 0.6), 0 2px 5px rgba(0,0,0,0.25);
             "></div>`,
             iconSize: [18, 18],
             iconAnchor: [9, 9]
@@ -400,15 +563,15 @@ function drawSearchQueryOnMap(queryLatLng, closestPoint) {
     }).addTo(searchVisualLayer);
     
     targetMarker.bindPopup(`
-        <div style="font-weight:bold; font-size:13px; color:#10b981;">最近里程：${closestPoint.road} ${closestPoint.milestone}</div>
+        <div style="font-weight:bold; font-size:13px; color:#059669;">最近里程：${closestPoint.road} ${closestPoint.milestone}</div>
         <div style="font-size:12px;">海平面高度：${closestPoint.elevation}m</div>
     `);
     
     // 3. 連接虛線
     L.polyline([queryLatLng, targetLatLng], {
-        color: '#fbbf24',
+        color: '#d97706',
         weight: 2.5,
-        opacity: 0.8,
+        opacity: 0.85,
         dashArray: '5, 5'
     }).addTo(searchVisualLayer);
     
@@ -967,4 +1130,12 @@ function bindEvents() {
     document.getElementById('update-btn').addEventListener('click', () => {
         checkAndExecuteUpdate();
     });
+    
+    // 9. 主題切換按鈕
+    const themeBtn = document.getElementById('theme-toggle-btn');
+    if (themeBtn) {
+        themeBtn.addEventListener('click', () => {
+            toggleTheme();
+        });
+    }
 }

@@ -44,6 +44,10 @@ graph TD
 - 當點選「更新資料」時，網頁會先發送一個 200 位元組的 `metadata.json` 請求，比對在 GitHub Actions 偵測到並提交的版本 md5。
 - 若無版本變更，顯示「已是最新版」並直接終止，**絕不下載 539KB 數據**，將多餘流量降為 0，達成省電與流量節約。
 
+### 5. 清爽淺色與深色主題切換 (Clean Light & Dark Themes)
+- 預設採用 **Clean Emerald 淺色現代主題**，搭配 **CartoDB Positron** 高質感白灰地圖圖資，戶外陽光下或室內皆能清晰閱讀。
+- 頂部導覽列提供**深/淺模式一鍵切換按鈕**，並以 `localStorage` 記憶偏好；切換時自動無縫抽換 Leaflet 底圖（Positron / Dark Matter）與微調地圖標記對比度。
+
 ---
 
 ## 📱 使用方式 (Usage Guide)
